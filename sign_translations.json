@@ -1,0 +1,38 @@
+{
+  "HELP": {
+    "translation": "ꯃꯥꯇꯦꯡ ꯄꯥꯡꯕꯤꯌꯨ",
+    "audio": "audio/hello.mp3"
+  },
+  "HI": {
+    "translation": "ꯈꯨꯔꯨꯝꯖꯔꯤ",
+    "audio": "audio/hello.mp3"
+  },
+   "I": {
+    "translation": "ꯑꯩ",
+    "audio": "audio/i.mp3"
+  },
+   "LOVE": {
+    "translation": "ꯅꯨꯡꯁꯤ",
+    "audio": "audio/love.mp3"
+  },
+   "OK": {
+    "translation": "ꯍꯣꯢ",
+    "audio": "audio/ok.mp3"
+  },
+   "THANK YOU": {
+    "translation": "ꯊꯥꯒꯠꯆꯔꯤ",
+    "audio": "audio/thank_you.mp3"
+  },
+   "WANT": {
+    "translation": "ꯄꯥꯝꯃꯤ",
+    "audio": "audio/want.mp3"
+  },
+   "WATER": {
+    "translation": "ꯏꯁꯤꯡ",
+    "audio": "audio/water.mp3"
+  },
+   "YOU": {
+    "translation": "ꯅꯍꯥꯛ",
+    "audio": "audio/you.mp3"
+  }
+}

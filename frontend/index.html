@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISL to Meiteilon Translator</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">ISL</div>
+  <div><h1>Sign Language Translator</h1><p>Indian Sign Language to Meiteilon</p></div>
+  <span class="tag">LOCAL PROTOTYPE</span>
+</header>
+<main class="layout">
+  <section class="card camera-card">
+    <div class="heading"><div><h2>Live translation</h2><p>Position your hand clearly inside the camera frame.</p></div><span id="cameraStatus">Camera stopped</span></div>
+    <div class="video-wrap">
+      <video id="camera" autoplay playsinline muted></video>
+      <canvas id="landmarkCanvas"></canvas>
+      <div id="placeholder" class="placeholder"><span>◎</span><p>Camera preview will appear here</p></div>
+    </div>
+    <div class="landmark-controls">
+      <span class="control-title">Reference points</span>
+      <label><input type="checkbox" id="handToggle" checked> Hand</label>
+      <label><input type="checkbox" id="bodyToggle" checked> Body</label>
+      <label><input type="checkbox" id="faceToggle" checked> Face</label>
+    </div>
+    <div class="controls"><button id="startButton">Start camera</button><button id="stopButton" class="secondary" disabled>Stop camera</button></div>
+    <p id="message" class="message">Start the camera to begin.</p>
+  </section>
+  <section class="card result-card">
+    <h2>Recognition result</h2>
+    <div class="result"><small>RECOGNIZED ISL SIGN</small><strong id="signResult">—</strong><span id="confidenceResult">Confidence: —</span></div>
+    <div class="result translation"><small>MEITEILON TRANSLATION</small><strong id="translationResult" lang="mni">—</strong></div>
+    <div class="voice-controls">
+      <button id="replayVoiceButton" class="secondary" type="button" disabled>↻ Replay Meiteilon audio</button>
+    </div>
+    <audio id="manipuriAudio" preload="auto"></audio>
+    <p class="note">Meiteilon audio plays automatically after a sign is recognized consistently. Use Replay to hear the same translation again.</p>
+    <p class="note">Add your recorded Meiteilon voice clips in <code>frontend/audio/</code> and connect each clip to its sign in <code>sign_translations.json</code>.</p>
+    <p class="note">A result is saved after the same sign is recognized consistently.</p>
+  </section>
+  <section class="card history-card">
+    <div class="heading"><div><h2>Recognition history</h2><p>Saved translations with date, time and confidence.</p></div><button id="refreshButton" class="secondary">Refresh</button></div>
+    <div class="table-wrap"><table><thead><tr><th>Time</th><th>ISL sign</th><th>Meiteilon</th><th>Confidence</th></tr></thead><tbody id="historyBody"><tr><td colspan="4">No records yet.</td></tr></tbody></table></div>
+  </section>
+</main>
+<script src="/static/script.js"></script>
+</body>
+</html>

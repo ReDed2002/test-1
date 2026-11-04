@@ -8,6 +8,7 @@ const manipuriAudio=document.getElementById("manipuriAudio");
 let stream=null,timer=null,busy=false,candidate="",count=0,lastSaved="",lastAutoSpoken="";
 let currentAudioUrl="";
 const sentenceItems=[];
+let sentenceInfo=null,lookupToken=0,lookupPromise=Promise.resolve();
 const sentenceWords=document.getElementById("sentenceWords"),sentenceTranslation=document.getElementById("sentenceTranslation");
 const sentenceMessage=document.getElementById("sentenceMessage"),saveSentenceButton=document.getElementById("saveSentenceButton");
 const playSentenceButton=document.getElementById("playSentenceButton"),undoWordButton=document.getElementById("undoWordButton"),clearSentenceButton=document.getElementById("clearSentenceButton");
@@ -19,7 +20,26 @@ function renderSentence(){
  sentenceItems.forEach(item=>{const chip=document.createElement("span");chip.className="word-chip";chip.textContent=item.translation||item.sign;sentenceWords.appendChild(chip)});
  sentenceTranslation.textContent=sentenceItems.map(x=>x.translation).filter(Boolean).join(" ")||"—";
  const has=sentenceItems.length>0;
- saveSentenceButton.disabled=!has;playSentenceButton.disabled=!has;undoWordButton.disabled=!has;clearSentenceButton.disabled=!has;
+ // Save stays disabled until the server confirms these signs form a known sentence.
+ saveSentenceButton.disabled=true;playSentenceButton.disabled=!has;undoWordButton.disabled=!has;clearSentenceButton.disabled=!has;
+ refreshSentenceInfo();
+}
+// Ask the server whether this exact sign order is a known sentence (sentence_translations.json).
+function refreshSentenceInfo(){
+ const token=++lookupToken;
+ if(!sentenceItems.length){sentenceInfo=null;lookupPromise=Promise.resolve();return lookupPromise}
+ lookupPromise=fetch("/api/sentence-lookup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({signs:sentenceItems.map(x=>x.sign)})})
+  .then(r=>r.ok?r.json():Promise.reject(new Error("Lookup failed")))
+  .then(info=>{
+   if(token!==lookupToken)return;
+   sentenceInfo=info;
+   sentenceTranslation.textContent=info.translation||"—";
+   saveSentenceButton.disabled=!info.matched;
+   if(info.matched)sentenceMessage.textContent="Sentence recognized"+(info.verified?".":" (translation not yet verified).")+" You can save it now.";
+   else sentenceMessage.textContent="No sentence matches these signs yet. Keep signing, or undo/clear.";
+  })
+  .catch(()=>{if(token===lookupToken)sentenceInfo=null});
+ return lookupPromise;
 }
 function addSentenceWord(data){
  if(sentenceItems.length&&sentenceItems[sentenceItems.length-1].sign===data.sign)return;
@@ -29,20 +49,36 @@ function addSentenceWord(data){
 async function saveSentence(){
  if(!sentenceItems.length)return;
  try{
-  const response=await fetch("/api/sentences",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({signs:sentenceItems.map(x=>x.sign),translation:sentenceItems.map(x=>x.translation).join(" ")})});
+  const response=await fetch("/api/sentences",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({signs:sentenceItems.map(x=>x.sign),translation:(sentenceInfo&&sentenceInfo.translation)||sentenceItems.map(x=>x.translation).join(" ")})});
   const data=await response.json();if(!response.ok)throw new Error(data.detail||"Save failed");
-  sentenceMessage.textContent="Sentence saved successfully (ID "+data.id+").";
+  sentenceItems.length=0;renderSentence();
+  sentenceMessage.textContent="Sentence saved (ID "+data.id+"). Use Replay in the Saved sentences table.";
+  await loadSentences();
  }catch(e){sentenceMessage.textContent="Could not save sentence: "+e.message}
 }
+function playClip(url){
+ return new Promise((resolve,reject)=>{const a=new Audio(url);a.onended=resolve;a.onerror=reject;a.play().catch(reject)});
+}
 async function playSentence(){
- const clips=sentenceItems.map(x=>x.audio_url).filter(Boolean);
- if(!clips.length){sentenceMessage.textContent="No recorded audio clips are mapped to these words yet.";return}
- sentenceMessage.textContent="Playing sentence word by word...";
- for(const url of clips){
-  try{await new Promise((resolve,reject)=>{const a=new Audio(url);a.onended=resolve;a.onerror=reject;a.play().catch(reject)})}
-  catch(e){sentenceMessage.textContent="A word audio clip could not play. Check the audio mapping.";return}
- }
- sentenceMessage.textContent="Sentence audio finished.";
+ playSentenceButton.disabled=true;
+ try{
+  await lookupPromise; // make sure the latest sentence lookup has finished
+  // 1) Preferred: one recorded clip for the whole matched sentence.
+  if(sentenceInfo&&sentenceInfo.audio_url){
+   sentenceMessage.textContent="Playing Meiteilon sentence...";
+   try{await playClip(sentenceInfo.audio_url);sentenceMessage.textContent="Sentence audio finished.";return}
+   catch(e){sentenceMessage.textContent="Sentence clip could not play. Playing word by word..."}
+  }
+  // 2) Fallback: play each word's clip in order.
+  const clips=sentenceItems.map(x=>x.audio_url).filter(Boolean);
+  if(!clips.length){sentenceMessage.textContent="No recorded audio clips are mapped to these words yet.";return}
+  if(!(sentenceInfo&&sentenceInfo.audio_url))sentenceMessage.textContent="No sentence clip for this order yet. Playing word by word...";
+  for(const url of clips){
+   try{await playClip(url)}
+   catch(e){sentenceMessage.textContent="A word audio clip could not play. Check the audio mapping.";return}
+  }
+  sentenceMessage.textContent="Sentence audio finished.";
+ }finally{playSentenceButton.disabled=!sentenceItems.length}
 }
 
 let latestLandmarks={hand:[],body:[],face:[]};
@@ -156,4 +192,29 @@ async function loadHistory(){
   for(const row of rows){const tr=document.createElement("tr");for(const value of [row.recognized_at,row.sign,row.translation,(row.confidence*100).toFixed(1)+"%"]){const td=document.createElement("td");td.textContent=value;tr.appendChild(td)}historyBody.appendChild(tr)}
  }catch(e){message.textContent="Could not load history: "+e.message}
 }
-loadHistory();
+async function loadSentences(){
+ const body=document.getElementById("sentenceHistoryBody");
+ try{
+  const response=await fetch("/api/sentences"),rows=await response.json();body.innerHTML="";
+  if(!rows.length){body.innerHTML='<tr><td colspan="4">No saved sentences yet.</td></tr>';return}
+  for(const row of rows){
+   const tr=document.createElement("tr");
+   for(const value of [row.saved_at,row.signs.join(" + "),row.translation]){const td=document.createElement("td");td.textContent=value;tr.appendChild(td)}
+   const td=document.createElement("td"),btn=document.createElement("button");
+   btn.type="button";btn.className="secondary";btn.textContent="▶ Replay";
+   btn.disabled=!(row.audio_url||(row.word_audio_urls||[]).length);
+   btn.onclick=()=>replaySavedSentence(row,btn);
+   td.appendChild(btn);tr.appendChild(td);body.appendChild(tr);
+  }
+ }catch(e){sentenceMessage.textContent="Could not load saved sentences: "+e.message}
+}
+async function replaySavedSentence(row,btn){
+ btn.disabled=true;
+ try{
+  // Prefer the recorded sentence clip, otherwise play each word's clip in order.
+  if(row.audio_url){try{await playClip(row.audio_url);return}catch(e){}}
+  for(const url of (row.word_audio_urls||[])){await playClip(url)}
+ }catch(e){sentenceMessage.textContent="Could not play this sentence's audio. Check the audio files."}
+ finally{btn.disabled=false}
+}
+loadHistory();loadSentences();

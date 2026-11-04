@@ -50,7 +50,11 @@
       <button id="clearSentenceButton" class="secondary" disabled>Clear</button>
     </div>
     <p id="sentenceMessage" class="message">Show signs one by one to build a sentence.</p>
-    <p class="note">Sentence audio plays each word's recorded Meiteilon clip in sequence. It is not natural sentence-level TTS yet.</p>
+    <p class="note">If the signs match a sentence in sentence_translations.json, its recorded Meiteilon sentence clip plays. Otherwise each word's clip plays in sequence.</p>
+  </section>
+  <section class="card history-card">
+    <div class="heading"><div><h2>Saved sentences</h2><p>Only complete sentences from sentence_translations.json are saved.</p></div><button class="secondary" onclick="loadSentences()">Refresh</button></div>
+    <div class="table-wrap"><table><thead><tr><th>Time</th><th>ISL signs</th><th>Meiteilon sentence</th><th>Replay</th></tr></thead><tbody id="sentenceHistoryBody"><tr><td colspan="4">No saved sentences yet.</td></tr></tbody></table></div>
   </section>
   <section class="card history-card">
     <div class="heading"><div><h2>Recognition history</h2><p>Saved translations with date, time and confidence.</p></div><button id="refreshButton" class="secondary">Refresh</button></div>

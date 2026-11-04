@@ -1,0 +1,35 @@
+{
+ 
+  "sentences": [
+    {
+      "signs": ["I", "LOVE", "YOU"],
+      "translation": "ꯑꯩ ꯅꯨꯡꯁꯤ ꯅꯍꯥꯛ",
+      "audio": "audio/sentences/i_love_you.mp3",
+      "verified": false
+    },
+    {
+      "signs": ["HI", "WANT", "WATER"],
+      "translation": "ꯊꯥꯒꯠꯆꯔꯤ ꯏꯁꯤꯡ ꯄꯥꯝꯃꯤ",
+      "audio": "audio/sentences/i_want_water.mp3",
+      "verified": true
+    },
+    {
+      "signs": ["YOU", "WANT", "WATER"],
+      "translation": "ꯅꯍꯥꯛ ꯄꯥꯝꯃꯤ ꯏꯁꯤꯡ",
+      "audio": "audio/sentences/you_want_water.mp3",
+      "verified": true
+    },
+    {
+      "signs": ["I", "WANT", "HELP"],
+      "translation": "ꯑꯩ ꯄꯥꯝꯃꯤ ꯃꯥꯇꯦꯡ ꯄꯥꯡꯕꯤꯌꯨ",
+      "audio": "audio/sentences/i_want_help.mp3",
+      "verified": false
+    },
+    {
+      "signs": ["HI", "YOU"],
+      "translation": "ꯈꯨꯔꯨꯝꯖꯔꯤ ꯅꯍꯥꯛ",
+      "audio": "audio/sentences/hi_you.mp3",
+      "verified": false
+    }
+  ]
+}

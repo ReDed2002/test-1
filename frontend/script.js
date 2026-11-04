@@ -7,6 +7,44 @@ const replayVoiceButton=document.getElementById("replayVoiceButton");
 const manipuriAudio=document.getElementById("manipuriAudio");
 let stream=null,timer=null,busy=false,candidate="",count=0,lastSaved="",lastAutoSpoken="";
 let currentAudioUrl="";
+const sentenceItems=[];
+const sentenceWords=document.getElementById("sentenceWords"),sentenceTranslation=document.getElementById("sentenceTranslation");
+const sentenceMessage=document.getElementById("sentenceMessage"),saveSentenceButton=document.getElementById("saveSentenceButton");
+const playSentenceButton=document.getElementById("playSentenceButton"),undoWordButton=document.getElementById("undoWordButton"),clearSentenceButton=document.getElementById("clearSentenceButton");
+saveSentenceButton.onclick=saveSentence;playSentenceButton.onclick=playSentence;undoWordButton.onclick=()=>{sentenceItems.pop();renderSentence()};
+clearSentenceButton.onclick=()=>{sentenceItems.length=0;renderSentence();sentenceMessage.textContent="Sentence cleared."};
+function renderSentence(){
+ sentenceWords.innerHTML="";
+ if(!sentenceItems.length)sentenceWords.innerHTML='<span class="empty-sentence">Your sentence will appear here.</span>';
+ sentenceItems.forEach(item=>{const chip=document.createElement("span");chip.className="word-chip";chip.textContent=item.translation||item.sign;sentenceWords.appendChild(chip)});
+ sentenceTranslation.textContent=sentenceItems.map(x=>x.translation).filter(Boolean).join(" ")||"—";
+ const has=sentenceItems.length>0;
+ saveSentenceButton.disabled=!has;playSentenceButton.disabled=!has;undoWordButton.disabled=!has;clearSentenceButton.disabled=!has;
+}
+function addSentenceWord(data){
+ if(sentenceItems.length&&sentenceItems[sentenceItems.length-1].sign===data.sign)return;
+ sentenceItems.push({sign:data.sign,translation:data.translation||"",audio_url:data.audio_url||""});
+ renderSentence();sentenceMessage.textContent="Added "+data.sign+" to sentence.";
+}
+async function saveSentence(){
+ if(!sentenceItems.length)return;
+ try{
+  const response=await fetch("/api/sentences",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({signs:sentenceItems.map(x=>x.sign),translation:sentenceItems.map(x=>x.translation).join(" ")})});
+  const data=await response.json();if(!response.ok)throw new Error(data.detail||"Save failed");
+  sentenceMessage.textContent="Sentence saved successfully (ID "+data.id+").";
+ }catch(e){sentenceMessage.textContent="Could not save sentence: "+e.message}
+}
+async function playSentence(){
+ const clips=sentenceItems.map(x=>x.audio_url).filter(Boolean);
+ if(!clips.length){sentenceMessage.textContent="No recorded audio clips are mapped to these words yet.";return}
+ sentenceMessage.textContent="Playing sentence word by word...";
+ for(const url of clips){
+  try{await new Promise((resolve,reject)=>{const a=new Audio(url);a.onended=resolve;a.onerror=reject;a.play().catch(reject)})}
+  catch(e){sentenceMessage.textContent="A word audio clip could not play. Check the audio mapping.";return}
+ }
+ sentenceMessage.textContent="Sentence audio finished.";
+}
+
 let latestLandmarks={hand:[],body:[],face:[]};
 const canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");
 startButton.onclick=startCamera;stopButton.onclick=stopCamera;document.getElementById("refreshButton").onclick=loadHistory;
@@ -98,6 +136,7 @@ async function considerSaving(data){
  if(candidate===data.sign)count++;else{candidate=data.sign;count=1;lastSaved="";lastAutoSpoken="";}
  if(count>=3&&lastAutoSpoken!==data.sign){
   lastAutoSpoken=data.sign;
+  addSentenceWord(data);
   if(data.audio_url){
    setTranslationAudio(data.audio_url);
    playCurrentAudio();

@@ -7,3 +7,12 @@
 @media(max-width:760px){.layout{grid-template-columns:1fr}.history-card{grid-column:auto}.topbar{padding:16px 4vw}}
 
 .voice-controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+
+.sentence-card{grid-column:1/-1}
+.sentence-words{display:flex;flex-wrap:wrap;gap:10px;min-height:58px;padding:14px;border:1px dashed var(--border,#aaa);border-radius:12px;margin:12px 0}
+.word-chip{background:rgba(90,120,220,.12);border:1px solid rgba(90,120,220,.3);border-radius:9px;padding:8px 12px}
+.empty-sentence{opacity:.65}
+.sentence-output{background:rgba(120,120,120,.08);padding:14px;border-radius:12px;margin:12px 0}
+.sentence-output small{display:block;font-size:11px;letter-spacing:.08em;margin-bottom:8px;opacity:.7}
+#sentenceTranslation{font-size:1.35rem;line-height:1.8;overflow-wrap:anywhere}
+.sentence-controls{flex-wrap:wrap}

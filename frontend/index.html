@@ -10,7 +10,7 @@
 <header class="topbar">
   <div class="brand">ISL</div>
   <div><h1>Sign Language Translator</h1><p>Indian Sign Language to Meiteilon</p></div>
-  <span class="tag">LOCAL PROTOTYPE</span>
+  <span class="tag">SMALL PROTOTYPE</span>
 </header>
 <main class="layout">
   <section class="card camera-card">
@@ -38,8 +38,19 @@
     </div>
     <audio id="manipuriAudio" preload="auto"></audio>
     <p class="note">Meiteilon audio plays automatically after a sign is recognized consistently. Use Replay to hear the same translation again.</p>
-    <p class="note">Add your recorded Meiteilon voice clips in <code>frontend/audio/</code> and connect each clip to its sign in <code>sign_translations.json</code>.</p>
-    <p class="note">A result is saved after the same sign is recognized consistently.</p>
+  </section>
+  <section class="card sentence-card">
+    <div class="heading"><div><h2>Sentence builder</h2><p>Recognized signs are added here in order.</p></div></div>
+    <div id="sentenceWords" class="sentence-words"><span class="empty-sentence">Your sentence will appear here.</span></div>
+    <div class="sentence-output"><small>MEITEILON SENTENCE</small><div id="sentenceTranslation" lang="mni">—</div></div>
+    <div class="controls sentence-controls">
+      <button id="saveSentenceButton" disabled>Save sentence</button>
+      <button id="playSentenceButton" class="secondary" disabled>▶ Play sentence</button>
+      <button id="undoWordButton" class="secondary" disabled>Undo last word</button>
+      <button id="clearSentenceButton" class="secondary" disabled>Clear</button>
+    </div>
+    <p id="sentenceMessage" class="message">Show signs one by one to build a sentence.</p>
+    <p class="note">Sentence audio plays each word's recorded Meiteilon clip in sequence. It is not natural sentence-level TTS yet.</p>
   </section>
   <section class="card history-card">
     <div class="heading"><div><h2>Recognition history</h2><p>Saved translations with date, time and confidence.</p></div><button id="refreshButton" class="secondary">Refresh</button></div>

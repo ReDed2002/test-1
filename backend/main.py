@@ -87,3 +87,19 @@ def get_history():
 def clear_history():
     database.clear()
     return {"cleared": True}
+
+
+class SentenceEntry(BaseModel):
+    signs: list[str] = Field(min_length=1, max_length=100)
+    translation: str = Field(min_length=1, max_length=2000)
+
+
+@app.post("/api/sentences")
+def save_sentence(entry: SentenceEntry):
+    record_id = database.add_sentence(entry.signs, entry.translation)
+    return {"saved": True, "id": record_id}
+
+
+@app.get("/api/sentences")
+def get_sentences():
+    return database.recent_sentences()

@@ -1,8 +1,4 @@
-"""Sign-label to Meiteilon text/audio lookup for the ISL website prototype.
 
-Edit sign_translations.json using the exact class labels stored in models/isl/labels.npy.
-Put each recorded clip inside frontend/audio/ and set its relative path in the JSON.
-"""
 import json
 from pathlib import Path
 

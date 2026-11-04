@@ -11,7 +11,7 @@ sys.path.insert(0, str(ROOT))
 
 from backend.database import HistoryDatabase
 from backend.recognition import SignRecognizer
-from manipuri_translation import get_translation_details, translate_to_manipuri
+from manipuri_translation import translate_to_manipuri
 
 app = FastAPI(title="ISL to Meiteilon Translator")
 recognizer = None
@@ -59,11 +59,7 @@ async def predict(
         raise HTTPException(status_code=400, detail="Empty camera frame.")
     try:
         result = recognizer.predict(content, detect_body=detect_body, detect_face=detect_face)
-        if result.get("recognized"):
-            result.update(get_translation_details(result["sign"]))
-        else:
-            result["translation"] = ""
-            result["audio_url"] = ""
+        result["translation"] = translate_to_manipuri(result["sign"]) if result["recognized"] else ""
         return result
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
@@ -73,7 +69,7 @@ async def predict(
 def save_history(entry: HistoryEntry):
     translation = translate_to_manipuri(entry.sign)
     if not translation:
-        raise HTTPException(status_code=400, detail="No Meiteilon translation is configured for this sign.")
+        raise HTTPException(status_code=400, detail="No Meiteilon translation is available for this sign.")
     record_id = database.add(entry.sign, translation, entry.confidence)
     return {"saved": True, "id": record_id}
 
@@ -88,18 +84,3 @@ def clear_history():
     database.clear()
     return {"cleared": True}
 
-
-class SentenceEntry(BaseModel):
-    signs: list[str] = Field(min_length=1, max_length=100)
-    translation: str = Field(min_length=1, max_length=2000)
-
-
-@app.post("/api/sentences")
-def save_sentence(entry: SentenceEntry):
-    record_id = database.add_sentence(entry.signs, entry.translation)
-    return {"saved": True, "id": record_id}
-
-
-@app.get("/api/sentences")
-def get_sentences():
-    return database.recent_sentences()
